@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "506592499117",
+    "project_id": "hoopfinder-da028",
+    "storage_bucket": "hoopfinder-da028.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506592499117:android:96770260aaf9e226217d24",
+        "android_client_info": {
+          "package_name": "hoop.finder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcc4HXoVbMZA4RXBhgFrU7HgE7_LeH4pQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
