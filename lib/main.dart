@@ -91,6 +91,7 @@ class CourtMapPage extends StatefulWidget {
 class _CourtMapPageState extends State<CourtMapPage> {
   LatLng? _pendingPin;
   bool forceMobile = false; // store this in your state
+  String searchQuery = '';
 
   void _showAddCourtDialog(LatLng location) async {
     final nameController = TextEditingController();
@@ -266,16 +267,6 @@ class _CourtMapPageState extends State<CourtMapPage> {
         });
   }
 
-  Stream<int> getActiveCheckinCountStream(String courtId) {
-    final twoHoursAgo = DateTime.now().subtract(const Duration(hours: 2)).toIso8601String();
-    return Supabase.instance.client
-        .from('court_checkins')
-        .eq('court_id', courtId)
-        .gte('created_at', twoHoursAgo)
-        .stream(primaryKey: ['id'])
-        .map((data) => data.length);
-  }
-
   @override
   Widget build(BuildContext context) {
     final isMobile = forceMobile || MediaQuery.of(context).size.width < 600;
@@ -293,9 +284,37 @@ class _CourtMapPageState extends State<CourtMapPage> {
             tooltip: isMobile ? 'Switch to Desktop View' : 'Switch to Mobile View',
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search by city or court name',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+        ),
       ),
       body: isMobile ? buildMobileLayout() : buildDesktopLayout(),
     );
+  }
+
+  // When building your court list:
+  List<Court> filterCourts(List<Court> courts) {
+    if (searchQuery.isEmpty) return courts;
+    return courts.where((court) =>
+      court.name.toLowerCase().contains(searchQuery)
+    ).toList();
   }
 
   Widget buildMobileLayout() {
@@ -313,6 +332,7 @@ class _CourtMapPageState extends State<CourtMapPage> {
             return const Center(child: CircularProgressIndicator());
           }
           final courts = snapshot.data!;
+          final filteredCourts = filterCourts(courts);
 
           return FlutterMap(
             options: MapOptions(
@@ -328,7 +348,7 @@ class _CourtMapPageState extends State<CourtMapPage> {
               ),
               MarkerLayer(
                 markers: [
-                  ...courts.map((court) => Marker(
+                  ...filteredCourts.map((court) => Marker(
                     point: court.location,
                     width: 40,
                     height: 40,
@@ -352,13 +372,6 @@ class _CourtMapPageState extends State<CourtMapPage> {
                                     if (court.hasRestrooms) Icon(Icons.wc, color: Colors.blue),
                                     if (court.hasWaterFountain) Icon(Icons.local_drink, color: Colors.teal),
                                   ],
-                                ),
-                                StreamBuilder<int>(
-                                  stream: getActiveCheckinCountStream(court.id),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData) return const Text('Loading crowd...');
-                                    return Text('People here now: ${snapshot.data}');
-                                  },
                                 ),
                               ],
                             ),
@@ -480,6 +493,7 @@ class _CourtMapPageState extends State<CourtMapPage> {
             return const Center(child: CircularProgressIndicator());
           }
           final courts = snapshot.data!;
+          final filteredCourts = filterCourts(courts);
 
           return FlutterMap(
             options: MapOptions(
@@ -495,7 +509,7 @@ class _CourtMapPageState extends State<CourtMapPage> {
               ),
               MarkerLayer(
                 markers: [
-                  ...courts.map((court) => Marker(
+                  ...filteredCourts.map((court) => Marker(
                     point: court.location,
                     width: 40,
                     height: 40,
@@ -519,13 +533,6 @@ class _CourtMapPageState extends State<CourtMapPage> {
                                     if (court.hasRestrooms) Icon(Icons.wc, color: Colors.blue),
                                     if (court.hasWaterFountain) Icon(Icons.local_drink, color: Colors.teal),
                                   ],
-                                ),
-                                StreamBuilder<int>(
-                                  stream: getActiveCheckinCountStream(court.id),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData) return const Text('Loading crowd...');
-                                    return Text('People here now: ${snapshot.data}');
-                                  },
                                 ),
                               ],
                             ),
@@ -631,8 +638,4 @@ class _CourtMapPageState extends State<CourtMapPage> {
       ),
     );
   }
-}
-
-extension on SupabaseQueryBuilder {
-  eq(String s, String courtId) {}
 }
