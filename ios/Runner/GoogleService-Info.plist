@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCqU8wzhiSfQHuUSAHV9_mf0IbXzw8vKF0</string>
+	<string>your api key </string>
 	<key>GCM_SENDER_ID</key>
 	<string>506592499117</string>
 	<key>PLIST_VERSION</key>
